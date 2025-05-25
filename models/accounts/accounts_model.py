@@ -1,4 +1,4 @@
-from flask import jsonify
+from flask import jsonify, request
 from models.connection import supabase
 from datetime import datetime, timedelta
 
@@ -30,8 +30,18 @@ class AccountsModel():
             "data": account_resp.data[0]
         }), 200
 
-    def create_account(self, account_data):
+    def create_account(self):
         try:
+            account_data = request.get_json()
+            # Validar campos requeridos
+            required_fields = ['nombre', 'tipo_servicio', 'cantidad_perfiles', 'precio_cuenta', 'precio_perfil', 'credenciales']
+            for field in required_fields:
+                if field not in account_data:
+                    return jsonify({
+                        "mensaje": f"El campo {field} es requerido",
+                        "data": None
+                    }), 400
+
             # Validar cantidad de perfiles
             if account_data.get('cantidad_perfiles', 0) > 5:
                 return jsonify({
@@ -39,10 +49,33 @@ class AccountsModel():
                     "data": None
                 }), 400
 
+            # Validar credenciales
+            if not isinstance(account_data['credenciales'], dict):
+                return jsonify({
+                    "mensaje": "El campo credenciales debe ser un objeto JSON",
+                    "data": None
+                }), 400
+
+            required_credentials = ['correo', 'contraseña']
+            for credential in required_credentials:
+                if credential not in account_data['credenciales']:
+                    return jsonify({
+                        "mensaje": f"El campo {credential} es requerido en las credenciales",
+                        "data": None
+                    }), 400
+
+            # Validar valores numéricos
+            if account_data['precio_cuenta'] <= 0 or account_data['precio_perfil'] <= 0:
+                return jsonify({
+                    "mensaje": "Los precios deben ser mayores a 0",
+                    "data": None
+                }), 400
+
             # Establecer estado inicial
             account_data['estado'] = 'disponible'
             account_data['fecha_inicio'] = datetime.now().isoformat()
             account_data['fecha_fin'] = (datetime.now() + timedelta(days=30)).isoformat()
+            account_data['usuario_actual_id'] = None  # Aseguramos que usuario_actual_id sea null
 
             account_resp = supabase.table("ACCOUNTS").insert(account_data).execute()
             return jsonify({
