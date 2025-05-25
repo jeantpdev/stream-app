@@ -12,18 +12,18 @@ class ProfilesController():
         return self.model.get_profile_by_id(profile_id)
 
     def create_profile(self):
-        profile_data = request.get_json()
-        required_fields = ['nombre', 'cuenta_id']
+        # profile_data = request.get_json()
+        # required_fields = ['nombre', 'cuenta_id']
         
-        # Validar campos requeridos
-        for field in required_fields:
-            if field not in profile_data:
-                return jsonify({
-                    "mensaje": f"El campo {field} es requerido",
-                    "data": None
-                }), 400
+        # # Validar campos requeridos
+        # for field in required_fields:
+        #     if field not in profile_data:
+        #         return jsonify({
+        #             "mensaje": f"El campo {field} es requerido",
+        #             "data": None
+        #         }), 400
 
-        return self.model.create_profile(profile_data)
+        return self.model.create_profile()
 
     def assign_to_client(self, profile_id):
         data = request.get_json()

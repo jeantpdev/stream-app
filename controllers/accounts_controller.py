@@ -15,25 +15,25 @@ class AccountsController():
         return self.model.get_account_by_id(account_id)
 
     def create_account(self):
-        account_data = request.get_json()
-        required_fields = ['nombre', 'tipo_servicio', 'cantidad_perfiles', 'precio_completo', 'precio_por_perfil']
+        # account_data = request.get_json()
+        # required_fields = ['nombre', 'tipo_servicio', 'cantidad_perfiles', 'precio_completo', 'precio_por_perfil']
         
-        # Validar campos requeridos
-        for field in required_fields:
-            if field not in account_data:
-                return jsonify({
-                    "mensaje": f"El campo {field} es requerido",
-                    "data": None
-                }), 400
+        # # Validar campos requeridos
+        # for field in required_fields:
+        #     if field not in account_data:
+        #         return jsonify({
+        #             "mensaje": f"El campo {field} es requerido",
+        #             "data": None
+        #         }), 400
 
-        # Validar valores numéricos
-        if account_data['cantidad_perfiles'] <= 0 or account_data['precio_completo'] <= 0 or account_data['precio_por_perfil'] <= 0:
-            return jsonify({
-                "mensaje": "Los valores numéricos deben ser mayores a 0",
-                "data": None
-            }), 400
+        # # Validar valores numéricos
+        # if account_data['cantidad_perfiles'] <= 0 or account_data['precio_completo'] <= 0 or account_data['precio_por_perfil'] <= 0:
+        #     return jsonify({
+        #         "mensaje": "Los valores numéricos deben ser mayores a 0",
+        #         "data": None
+        #     }), 400
 
-        return self.model.create_account(account_data)
+        return self.model.create_account()
 
     def update_account(self, account_id):
         account_data = request.get_json()
