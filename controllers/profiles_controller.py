@@ -26,14 +26,14 @@ class ProfilesController():
         return self.model.create_profile()
 
     def assign_to_client(self, profile_id):
-        data = request.get_json()
-        if 'cliente_id' not in data:
-            return jsonify({
-                "mensaje": "El campo cliente_id es requerido",
-                "data": None
-            }), 400
+        # data = request.get_json()
+        # if 'cliente_id' not in data:
+        #     return jsonify({
+        #         "mensaje": "El campo cliente_id es requerido",
+        #         "data": None
+        #     }), 400
 
-        return self.model.assign_to_client(profile_id, data['cliente_id'])
+        return self.model.assign_to_client(profile_id)
 
     def mark_as_available(self, profile_id):
         return self.model.mark_as_available(profile_id) 
