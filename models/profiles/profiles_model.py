@@ -80,8 +80,16 @@ class ProfilesModel():
                 "error": str(e)
             }), 400
 
-    def assign_to_client(self, profile_id, client_id):
+    def assign_to_client(self, profile_id):
         try:
+            profile_data = request.get_json()
+            
+            if 'cliente_id' not in profile_data or 'usuario_id' not in profile_data:
+                return jsonify({
+                    "mensaje": "Los campos cliente_id y usuario_id son requeridos",
+                    "data": None
+                }), 400
+
             # Verificar si el perfil existe y está disponible
             profile = supabase.table("PROFILES").select("*").eq("id", profile_id).execute()
             if not profile.data:
@@ -96,15 +104,35 @@ class ProfilesModel():
                     "data": None
                 }), 400
 
+            # Verificar si el usuario existe y es dueño de la cuenta
+            account = supabase.table("ACCOUNTS").select("*").eq("id", profile.data[0]['cuenta_id']).execute()
+            if not account.data:
+                return jsonify({
+                    "mensaje": "La cuenta asociada al perfil no existe",
+                    "data": None
+                }), 404
+
+            if account.data[0]['usuario_actual_id'] != profile_data['usuario_id']:
+                return jsonify({
+                    "mensaje": "No tienes permiso para asignar este perfil",
+                    "data": None
+                }), 403
+
+            # Verificar si el cliente existe
+            client = supabase.table("COSTUMERS").select("*").eq("id", profile_data['cliente_id']).execute()
+            if not client.data:
+                return jsonify({
+                    "mensaje": "Cliente no encontrado",
+                    "data": None
+                }), 404
+
             # Actualizar perfil
-            profile_data = {
+            update_data = {
                 'estado': 'ocupado',
-                'cliente_id': client_id,
-                'fecha_inicio': datetime.now().isoformat(),
-                'fecha_fin': (datetime.now() + timedelta(days=30)).isoformat()
+                'cliente_id': profile_data['cliente_id']
             }
 
-            profile_resp = supabase.table("PROFILES").update(profile_data).eq("id", profile_id).execute()
+            profile_resp = supabase.table("PROFILES").update(update_data).eq("id", profile_id).execute()
             return jsonify({
                 "mensaje": "Perfil asignado exitosamente",
                 "data": profile_resp.data[0]
