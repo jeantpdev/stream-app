@@ -1,4 +1,4 @@
-from flask import jsonify
+from flask import jsonify, request
 from models.connection import supabase
 from datetime import datetime, timedelta
 
@@ -22,8 +22,23 @@ class ProfilesModel():
             "data": profile_resp.data[0]
         }), 200
 
-    def create_profile(self, profile_data):
+    def create_profile(self):
         try:
+            profile_data = request.get_json()
+            # Verificar si el usuario existe
+            if 'usuario_id' not in profile_data:
+                return jsonify({
+                    "mensaje": "El campo usuario_id es requerido",
+                    "data": None
+                }), 400
+
+            user = supabase.table("USERS").select("*").eq("id", profile_data['usuario_id']).execute()
+            if not user.data:
+                return jsonify({
+                    "mensaje": "El usuario no existe",
+                    "data": None
+                }), 404
+
             # Verificar si la cuenta existe y está disponible
             account = supabase.table("ACCOUNTS").select("*").eq("id", profile_data['cuenta_id']).execute()
             if not account.data:
@@ -31,8 +46,13 @@ class ProfilesModel():
                     "mensaje": "La cuenta no existe",
                     "data": None
                 }), 404
-            
-            print("Cuenta encontrada")
+
+            # Verificar que el usuario sea el dueño de la cuenta
+            if account.data[0]['usuario_actual_id'] != profile_data['usuario_id']:
+                return jsonify({
+                    "mensaje": "No tienes permiso para crear perfiles en esta cuenta",
+                    "data": None
+                }), 403
 
             # Verificar cantidad de perfiles
             profiles = supabase.table("PROFILES").select("*").eq("cuenta_id", profile_data['cuenta_id']).execute()
@@ -41,22 +61,14 @@ class ProfilesModel():
                     "mensaje": "Se ha alcanzado el límite de perfiles para esta cuenta",
                     "data": None
                 }), 400
-            
-            print("Cantidad de perfiles verificada")
 
             # Establecer estado inicial y asegurar que cliente_id sea null
             profile_data['estado'] = 'disponible'
             profile_data['created_at'] = datetime.now().isoformat()
             profile_data['cliente_id'] = None  # Aseguramos que cliente_id sea null al crear
-            profile_data['usuario_id'] = account.data[0]['usuario_actual_id']  # Asignamos el usuario_id del revendedor
-
-            print(profile_data)
-
-            print("Datos del perfil preparados")
+            profile_data['usuario_id'] = profile_data['usuario_id']  # Asignamos el usuario_id como dueño del perfil
 
             profile_resp = supabase.table("PROFILES").insert(profile_data).execute()
-
-            print("Perfil creado exitosamente")
 
             return jsonify({
                 "mensaje": "Perfil creado exitosamente",
