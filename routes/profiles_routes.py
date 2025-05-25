@@ -20,7 +20,7 @@ def get_profile_by_id(profile_id):
 def create_profile():
     return profiles_controller.create_profile()
 
-@profiles.route('/profiles/<int:profile_id>/assign-client', methods=['PATCH'])
+@profiles.route('/profiles/<uuid:profile_id>/assign-client', methods=['PATCH'])
 @cross_origin()
 def assign_to_client(profile_id):
     return profiles_controller.assign_to_client(profile_id)
