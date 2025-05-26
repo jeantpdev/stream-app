@@ -28,19 +28,13 @@ class RentalsModel():
 
     def create_rental(self, rental_data):
         try:
-            # Verificar si el usuario existe y es revendedor
+            # Verificar si el usuario existe
             user = supabase.table("USERS").select("*").eq("id", rental_data['usuario_id']).execute()
             if not user.data:
                 return jsonify({
                     "mensaje": "Usuario no encontrado",
                     "data": None
                 }), 404
-            
-            if user.data[0]['rol'] != 'revendedor':
-                return jsonify({
-                    "mensaje": "Solo los revendedores pueden crear alquileres",
-                    "data": None
-                }), 403
 
             # Verificar si la cuenta existe
             account = supabase.table("ACCOUNTS").select("*").eq("id", rental_data['cuenta_id']).execute()
@@ -57,53 +51,90 @@ class RentalsModel():
                     "data": None
                 }), 400
 
-            # Si es alquiler de perfil, verificar cliente
+            # Establecer fechas
+            now = datetime.now()
+            rental_data['fecha_inicio'] = now.isoformat()
+            rental_data['fecha_fin'] = (now + timedelta(days=30)).isoformat()
+            rental_data['created_at'] = now.isoformat()
+            rental_data['estado'] = 'activo'
+
             if rental_data.get('tipo') == 'perfil':
-                if 'cliente_id' not in rental_data:
+                # Validar campos requeridos para alquiler de perfil
+                if 'cliente_id' not in rental_data or 'perfil_id' not in rental_data:
                     return jsonify({
-                        "mensaje": "El campo cliente_id es requerido para alquiler de perfil",
+                        "mensaje": "Los campos cliente_id y perfil_id son requeridos para alquiler de perfil",
                         "data": None
                     }), 400
 
                 # Verificar si el cliente existe y pertenece al revendedor
-                client = supabase.table("CLIENTS").select("*").eq("id", rental_data['cliente_id']).eq("revendedor_id", rental_data['usuario_id']).execute()
+                client = supabase.table("COSTUMERS").select("*").eq("id", rental_data['cliente_id']).eq("revendedor_id", rental_data['usuario_id']).execute()
                 if not client.data:
                     return jsonify({
                         "mensaje": "El cliente no existe o no pertenece al revendedor",
                         "data": None
                     }), 400
 
-            # Establecer fechas
-            now = datetime.now()
-            rental_data['fecha_inicio'] = now.isoformat()
-            rental_data['fecha_fin'] = (now + timedelta(days=30)).isoformat()
-            rental_data['created_at'] = now.isoformat()
+                # Verificar si el perfil existe y está disponible
+                profile = supabase.table("PROFILES").select("*").eq("id", rental_data['perfil_id']).eq("cuenta_id", rental_data['cuenta_id']).execute()
+                if not profile.data:
+                    return jsonify({
+                        "mensaje": "El perfil no existe o no pertenece a la cuenta",
+                        "data": None
+                    }), 400
 
-            # Crear el alquiler
-            rental_resp = supabase.table("RENTALS").insert(rental_data).execute()
+                if profile.data[0]['estado'] != 'disponible':
+                    return jsonify({
+                        "mensaje": "El perfil no está disponible",
+                        "data": None
+                    }), 400
 
-            # Actualizar estado de la cuenta
-            account_data = {
-                'estado': 'ocupada',
-                'usuario_actual_id': rental_data['usuario_id']
-            }
-            supabase.table("ACCOUNTS").update(account_data).eq("id", rental_data['cuenta_id']).execute()
+                # Solo los campos válidos para la tabla RENTALS
+                rental_insert = {
+                    "usuario_id": rental_data["usuario_id"],
+                    "cuenta_id": rental_data["cuenta_id"],
+                    "tipo": rental_data["tipo"],
+                    "fecha_inicio": rental_data["fecha_inicio"],
+                    "fecha_fin": rental_data["fecha_fin"],
+                    "created_at": rental_data["created_at"]
+                }
+                rental_resp = supabase.table("RENTALS").insert(rental_insert).execute()
 
-            # Obtener todos los perfiles de la cuenta
-            profiles = supabase.table("PROFILES").select("*").eq("cuenta_id", rental_data['cuenta_id']).execute()
-            
-            # Actualizar todos los perfiles de la cuenta
-            for profile in profiles.data:
+                # Actualizar el perfil
                 profile_data = {
                     'estado': 'ocupado',
-                    'usuario_id': rental_data['usuario_id']
+                    'usuario_id': rental_data['usuario_id'],
+                    'cliente_id': rental_data['cliente_id']
                 }
-                
-                # Si es alquiler de perfil, asignar el cliente al perfil
-                if rental_data.get('tipo') == 'perfil':
-                    profile_data['cliente_id'] = rental_data['cliente_id']
-                
-                supabase.table("PROFILES").update(profile_data).eq("id", profile['id']).execute()
+                supabase.table("PROFILES").update(profile_data).eq("id", rental_data['perfil_id']).execute()
+
+            else:  # tipo == 'completa'
+                # Solo los campos válidos para la tabla RENTALS
+                rental_insert = {
+                    "usuario_id": rental_data["usuario_id"],
+                    "cuenta_id": rental_data["cuenta_id"],
+                    "tipo": rental_data["tipo"],
+                    "fecha_inicio": rental_data["fecha_inicio"],
+                    "fecha_fin": rental_data["fecha_fin"],
+                    "created_at": rental_data["created_at"]
+                }
+                rental_resp = supabase.table("RENTALS").insert(rental_insert).execute()
+
+                # Actualizar estado de la cuenta
+                account_data = {
+                    'estado': 'ocupada',
+                    'usuario_actual_id': rental_data['usuario_id']
+                }
+                supabase.table("ACCOUNTS").update(account_data).eq("id", rental_data['cuenta_id']).execute()
+
+                # Actualizar todos los perfiles de la cuenta
+                profiles = supabase.table("PROFILES").select("*").eq("cuenta_id", rental_data['cuenta_id']).execute()
+                for profile in profiles.data:
+                    profile_data = {
+                        'estado': 'ocupado',
+                        'usuario_id': rental_data['usuario_id'],
+                        'cliente_id': None
+                    }
+                    supabase.table("PROFILES").update(profile_data).eq("id", profile['id']).execute()
 
             return jsonify({
                 "mensaje": "Alquiler creado exitosamente",
