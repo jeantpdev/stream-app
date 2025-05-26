@@ -47,13 +47,6 @@ class ProfilesModel():
                     "data": None
                 }), 404
 
-            # Verificar que el usuario sea el dueño de la cuenta
-            if account.data[0]['usuario_actual_id'] != profile_data['usuario_id']:
-                return jsonify({
-                    "mensaje": "No tienes permiso para crear perfiles en esta cuenta",
-                    "data": None
-                }), 403
-
             # Verificar cantidad de perfiles
             profiles = supabase.table("PROFILES").select("*").eq("cuenta_id", profile_data['cuenta_id']).execute()
             if len(profiles.data) >= 5:
@@ -129,7 +122,8 @@ class ProfilesModel():
             # Actualizar perfil
             update_data = {
                 'estado': 'ocupado',
-                'cliente_id': profile_data['cliente_id']
+                'cliente_id': profile_data['cliente_id'],
+                'usuario_id': profile_data['usuario_id']  # Actualizar el dueño del perfil
             }
 
             profile_resp = supabase.table("PROFILES").update(update_data).eq("id", profile_id).execute()
