@@ -39,3 +39,8 @@ def delete_account(account_id):
 @cross_origin()
 def mark_account_as_available(account_id):
     return accounts_controller.mark_as_available(account_id)
+
+@accounts.route('/accounts/<int:account_id>/update-profiles-count', methods=['PATCH'])
+@cross_origin()
+def update_profiles_count(account_id):
+    return accounts_controller.update_used_profiles_count(account_id)
