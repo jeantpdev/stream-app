@@ -108,6 +108,15 @@ class RentalsModel():
                 supabase.table("PROFILES").update(profile_data).eq("id", rental_data['perfil_id']).execute()
 
             else:  # tipo == 'completa'
+                # Verificar que todos los perfiles estén disponibles
+                profiles = supabase.table("PROFILES").select("*").eq("cuenta_id", rental_data['cuenta_id']).execute()
+                for profile in profiles.data:
+                    if profile['estado'] != 'disponible':
+                        return jsonify({
+                            "mensaje": "No se puede comprar la cuenta completa porque uno o más perfiles ya están ocupados",
+                            "data": None
+                        }), 400
+
                 # Solo los campos válidos para la tabla RENTALS
                 rental_insert = {
                     "usuario_id": rental_data["usuario_id"],
@@ -127,7 +136,6 @@ class RentalsModel():
                 supabase.table("ACCOUNTS").update(account_data).eq("id", rental_data['cuenta_id']).execute()
 
                 # Actualizar todos los perfiles de la cuenta
-                profiles = supabase.table("PROFILES").select("*").eq("cuenta_id", rental_data['cuenta_id']).execute()
                 for profile in profiles.data:
                     profile_data = {
                         'estado': 'ocupado',
