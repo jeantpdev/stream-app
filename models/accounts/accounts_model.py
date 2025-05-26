@@ -93,12 +93,30 @@ class AccountsModel():
             account_data['estado'] = 'disponible'
             account_data['fecha_inicio'] = datetime.now().isoformat()
             account_data['fecha_fin'] = (datetime.now() + timedelta(days=30)).isoformat()
-            account_data['usuario_actual_id'] = None  # Aseguramos que usuario_actual_id sea null
+            # La cuenta inicialmente la mantiene el usuario 43z (account_keeper) para no romper la lógica.
+            # Si alguien compra un perfil, la cuenta queda a account_keeper. 
+            # Si alguien compra la cuenta, se cambia el usuario_actual_id a la persona que compró la cuenta.
+            account_data['usuario_actual_id'] = "6d6f9721-ede6-4e8b-8a21-b0f49f2e63d8"
 
+            # Crear la cuenta
             account_resp = supabase.table("ACCOUNTS").insert(account_data).execute()
+            account = account_resp.data[0]
+
+            # Crear automáticamente los 5 perfiles
+            for i in range(5):
+                profile_data = {
+                    'nombre': f"Perfil {i+1}",
+                    'cuenta_id': account['id'],
+                    'estado': 'disponible',
+                    'created_at': datetime.now().isoformat(),
+                    'cliente_id': None,
+                    'usuario_id': "6d6f9721-ede6-4e8b-8a21-b0f49f2e63d8"  # account_keeper
+                }
+                supabase.table("PROFILES").insert(profile_data).execute()
+
             return jsonify({
-                "mensaje": "Cuenta creada exitosamente",
-                "data": account_resp.data[0]
+                "mensaje": "Cuenta y perfiles creados exitosamente",
+                "data": account
             }), 201
         except Exception as e:
             return jsonify({
@@ -193,5 +211,40 @@ class AccountsModel():
         except Exception as e:
             return jsonify({
                 "mensaje": "Error al actualizar conteo de perfiles",
+                "error": str(e)
+            }), 400
+
+    def check_and_update_expired_accounts(self):
+        try:
+            now = datetime.now()
+            
+            # Obtener todas las cuentas que han vencido
+            accounts = supabase.table("ACCOUNTS").select("*").lt("fecha_fin", now.isoformat()).neq("estado", "vencida").execute()
+            
+            for account in accounts.data:
+                # Actualizar estado de la cuenta a vencida
+                account_data = {
+                    'estado': 'vencida',
+                    'usuario_actual_id': None
+                }
+                supabase.table("ACCOUNTS").update(account_data).eq("id", account['id']).execute()
+                
+                # Actualizar estado de todos los perfiles de la cuenta a vencido
+                profiles = supabase.table("PROFILES").select("*").eq("cuenta_id", account['id']).execute()
+                for profile in profiles.data:
+                    profile_data = {
+                        'estado': 'vencido',
+                        'cliente_id': None,
+                        'usuario_id': None
+                    }
+                    supabase.table("PROFILES").update(profile_data).eq("id", profile['id']).execute()
+            
+            return jsonify({
+                "mensaje": "Verificación de cuentas vencidas completada",
+                "data": accounts.data
+            }), 200
+        except Exception as e:
+            return jsonify({
+                "mensaje": "Error al verificar cuentas vencidas",
                 "error": str(e)
             }), 400
