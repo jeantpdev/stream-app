@@ -5,7 +5,7 @@ from controllers.profiles_controller import ProfilesController
 profiles = Blueprint('profiles', __name__)
 profiles_controller = ProfilesController()
 
-@profiles.route('/accounts/<int:account_id>/profiles', methods=['GET'])
+@profiles.route('/accounts/<uuid:account_id>/profiles', methods=['GET'])
 @cross_origin()
 def get_profiles_by_account(account_id):
     return profiles_controller.get_profiles_by_account(account_id)
