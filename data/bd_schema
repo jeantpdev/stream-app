@@ -1,0 +1,56 @@
+-- Tabla: usuarios
+CREATE TABLE usuarios (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    nombre TEXT NOT NULL,
+    email TEXT UNIQUE NOT NULL,
+    contraseña TEXT NOT NULL,
+    rol TEXT NOT NULL CHECK (rol IN ('admin', 'revendedor')),
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Tabla: clientes
+CREATE TABLE clientes (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    nombre TEXT NOT NULL,
+    contacto TEXT,
+    revendedor_id UUID REFERENCES usuarios(id) ON DELETE CASCADE,
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Tabla: cuentas
+CREATE TABLE cuentas (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    nombre TEXT NOT NULL,
+    tipo_servicio TEXT NOT NULL,
+    cantidad_perfiles INTEGER NOT NULL CHECK (cantidad_perfiles >= 1 AND cantidad_perfiles <= 5),
+    precio_completo NUMERIC(10,2) NOT NULL,
+    precio_por_perfil NUMERIC(10,2) NOT NULL,
+    fecha_inicio DATE,
+    fecha_fin DATE,
+    estado TEXT NOT NULL CHECK (estado IN ('disponible', 'ocupada', 'vencida', 'pendiente_reasignacion')),
+    usuario_actual_id UUID REFERENCES usuarios(id) ON DELETE SET NULL,
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Tabla: perfiles
+CREATE TABLE perfiles (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    cuenta_id UUID REFERENCES cuentas(id) ON DELETE CASCADE,
+    nombre TEXT NOT NULL,
+    estado TEXT NOT NULL CHECK (estado IN ('disponible', 'ocupado', 'vencido')),
+    usuario_id UUID REFERENCES usuarios(id) ON DELETE SET NULL,
+    cliente_id UUID REFERENCES clientes(id) ON DELETE SET NULL,
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Tabla: alquileres
+CREATE TABLE alquileres (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    usuario_id UUID REFERENCES usuarios(id) ON DELETE CASCADE,
+    cuenta_id UUID REFERENCES cuentas(id) ON DELETE CASCADE,
+    perfil_id UUID REFERENCES perfiles(id) ON DELETE SET NULL,
+    tipo TEXT NOT NULL CHECK (tipo IN ('completa', 'perfil')),
+    fecha_inicio DATE NOT NULL,
+    fecha_fin DATE NOT NULL,
+    created_at TIMESTAMP DEFAULT NOW()
+);
