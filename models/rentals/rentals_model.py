@@ -107,6 +107,17 @@ class RentalsModel():
                 }
                 supabase.table("PROFILES").update(profile_data).eq("id", rental_data['perfil_id']).execute()
 
+                # Verificar cuántos perfiles están ocupados después de este alquiler
+                perfiles_ocupados = supabase.table("PROFILES").select("*").eq("cuenta_id", rental_data['cuenta_id']).eq("estado", "ocupado").execute()
+                total_perfiles = supabase.table("PROFILES").select("*").eq("cuenta_id", rental_data['cuenta_id']).execute()
+                if len(perfiles_ocupados.data) == len(total_perfiles.data):
+                    # Todos los perfiles ocupados
+                    cuenta_estado = 'ocupada'
+                else:
+                    # Al menos un perfil ocupado
+                    cuenta_estado = 'semiocupada'
+                supabase.table("ACCOUNTS").update({'estado': cuenta_estado}).eq("id", rental_data['cuenta_id']).execute()
+
             else:  # tipo == 'completa'
                 # Verificar que todos los perfiles estén disponibles
                 profiles = supabase.table("PROFILES").select("*").eq("cuenta_id", rental_data['cuenta_id']).execute()
