@@ -6,6 +6,12 @@ class AccountsModel():
 
     def get_all_accounts(self):
         accounts_resp = supabase.table("ACCOUNTS").select("*").execute()
+        
+        # Para cada cuenta, obtener el conteo de perfiles ocupados
+        for account in accounts_resp.data:
+            profiles = supabase.table("PROFILES").select("*").eq("cuenta_id", account['id']).eq("estado", "ocupado").execute()
+            account['perfiles_usados'] = len(profiles.data)
+        
         return jsonify({
             "mensaje": "Consulta exitosa",
             "data": accounts_resp.data
@@ -13,6 +19,12 @@ class AccountsModel():
 
     def get_available_accounts(self):
         accounts_resp = supabase.table("ACCOUNTS").select("*").eq("estado", "disponible").execute()
+        
+        # Para cada cuenta, obtener el conteo de perfiles ocupados
+        for account in accounts_resp.data:
+            profiles = supabase.table("PROFILES").select("*").eq("cuenta_id", account['id']).eq("estado", "ocupado").execute()
+            account['perfiles_usados'] = len(profiles.data)
+        
         return jsonify({
             "mensaje": "Consulta exitosa",
             "data": accounts_resp.data
@@ -25,9 +37,15 @@ class AccountsModel():
                 "mensaje": "Cuenta no encontrada",
                 "data": None
             }), 404
+        
+        # Obtener el conteo de perfiles ocupados
+        account = account_resp.data[0]
+        profiles = supabase.table("PROFILES").select("*").eq("cuenta_id", account_id).eq("estado", "ocupado").execute()
+        account['perfiles_usados'] = len(profiles.data)
+        
         return jsonify({
             "mensaje": "Consulta exitosa",
-            "data": account_resp.data[0]
+            "data": account
         }), 200
 
     def create_account(self):
@@ -156,3 +174,24 @@ class AccountsModel():
                 return False, "La cuenta tiene perfiles ocupados"
         
         return True, "Cuenta disponible"
+
+    def update_used_profiles_count(self, account_id):
+        try:
+            # Obtener todos los perfiles de la cuenta que están ocupados
+            profiles = supabase.table("PROFILES").select("*").eq("cuenta_id", account_id).eq("estado", "ocupado").execute()
+            
+            # Actualizar el campo perfiles_usados en la cuenta
+            account_data = {
+                'perfiles_usados': len(profiles.data)
+            }
+            
+            account_resp = supabase.table("ACCOUNTS").update(account_data).eq("id", account_id).execute()
+            return jsonify({
+                "mensaje": "Conteo de perfiles actualizado exitosamente",
+                "data": account_resp.data[0]
+            }), 200
+        except Exception as e:
+            return jsonify({
+                "mensaje": "Error al actualizar conteo de perfiles",
+                "error": str(e)
+            }), 400
