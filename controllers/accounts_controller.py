@@ -44,3 +44,6 @@ class AccountsController():
 
     def mark_as_available(self, account_id):
         return self.model.mark_as_available(account_id)
+
+    def update_used_profiles_count(self, account_id):
+        return self.model.update_used_profiles_count(account_id)
