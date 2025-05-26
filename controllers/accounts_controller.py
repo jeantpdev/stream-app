@@ -47,3 +47,6 @@ class AccountsController():
 
     def update_used_profiles_count(self, account_id):
         return self.model.update_used_profiles_count(account_id)
+
+    def check_expired_accounts(self):
+        return self.model.check_and_update_expired_accounts()
