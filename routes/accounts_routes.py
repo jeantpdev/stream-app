@@ -44,3 +44,8 @@ def mark_account_as_available(account_id):
 @cross_origin()
 def update_profiles_count(account_id):
     return accounts_controller.update_used_profiles_count(account_id)
+
+@accounts.route('/accounts/check-expired', methods=['POST'])
+@cross_origin()
+def check_expired_accounts():
+    return accounts_controller.check_expired_accounts()
