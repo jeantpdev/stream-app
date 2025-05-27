@@ -28,4 +28,9 @@ def update_user(user_id):
 @users.route('/users/<int:user_id>', methods=['DELETE'])
 @cross_origin()
 def delete_user(user_id):
-    return users_controller.delete_user(user_id) 
+    return users_controller.delete_user(user_id)
+
+@users.route('/login', methods=['POST'])
+@cross_origin()
+def login():
+    return users_controller.login() 

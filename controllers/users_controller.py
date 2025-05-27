@@ -37,4 +37,13 @@ class UsersController():
         return self.model.update_user(user_id, user_data)
 
     def delete_user(self, user_id):
-        return self.model.delete_user(user_id) 
+        return self.model.delete_user(user_id)
+
+    def login(self):
+        user_data = request.get_json()
+        print(user_data)
+        email = user_data.get('email')
+        password = user_data.get('password')
+        if not email or not password:
+            return {"mensaje": "Email y password son requeridos", "data": None}, 400
+        return self.model.login(email, password) 
