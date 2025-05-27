@@ -1,6 +1,10 @@
 from flask import Flask
 from flask_cors import CORS, cross_origin
 from flask_jwt_extended import JWTManager
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 # Rutas
 from routes.accounts_routes import *
@@ -10,6 +14,7 @@ from routes.profiles_routes import *
 
 app = Flask(__name__)
 jwt = JWTManager(app)
+app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY')
 cors = CORS(app, resources={r"/*": {"origins": "*"}})
 
 app.register_blueprint(accounts)
