@@ -4,14 +4,15 @@ from datetime import datetime
 
 class ClientsModel():
     def get_all_clients(self, revendedor_id):
-        clients_resp = supabase.table("CLIENTS").select("*").eq("revendedor_id", revendedor_id).execute()
+        print(revendedor_id)
+        clients_resp = supabase.table("COSTUMERS").select("*").eq("revendedor_id", revendedor_id).execute()
         return jsonify({
             "mensaje": "Consulta exitosa",
             "data": clients_resp.data
         }), 200
 
     def get_client_by_id(self, client_id):
-        client_resp = supabase.table("CLIENTS").select("*").eq("id", client_id).execute()
+        client_resp = supabase.table("COSTUMERS").select("*").eq("id", client_id).execute()
         if not client_resp.data:
             return jsonify({
                 "mensaje": "Cliente no encontrado",
@@ -42,7 +43,7 @@ class ClientsModel():
             # Establecer fecha de creación
             client_data['created_at'] = datetime.now().isoformat()
 
-            client_resp = supabase.table("CLIENTS").insert(client_data).execute()
+            client_resp = supabase.table("COSTUMERS").insert(client_data).execute()
             return jsonify({
                 "mensaje": "Cliente creado exitosamente",
                 "data": client_resp.data[0]
@@ -56,14 +57,14 @@ class ClientsModel():
     def update_client(self, client_id, client_data):
         try:
             # Verificar si el cliente existe
-            client = supabase.table("CLIENTS").select("*").eq("id", client_id).execute()
+            client = supabase.table("COSTUMERS").select("*").eq("id", client_id).execute()
             if not client.data:
                 return jsonify({
                     "mensaje": "Cliente no encontrado",
                     "data": None
                 }), 404
 
-            client_resp = supabase.table("CLIENTS").update(client_data).eq("id", client_id).execute()
+            client_resp = supabase.table("COSTUMERS").update(client_data).eq("id", client_id).execute()
             return jsonify({
                 "mensaje": "Cliente actualizado exitosamente",
                 "data": client_resp.data[0]
@@ -84,7 +85,7 @@ class ClientsModel():
                     "data": None
                 }), 400
 
-            supabase.table("CLIENTS").delete().eq("id", client_id).execute()
+            supabase.table("COSTUMERS").delete().eq("id", client_id).execute()
             return jsonify({
                 "mensaje": "Cliente eliminado exitosamente"
             }), 200
