@@ -11,6 +11,7 @@ from routes.accounts_routes import *
 from routes.users_routes import *
 from routes.rentals_routes import *
 from routes.profiles_routes import *
+from routes.clients_routes import *
 
 app = Flask(__name__)
 jwt = JWTManager(app)
@@ -21,7 +22,7 @@ app.register_blueprint(accounts)
 app.register_blueprint(users)
 app.register_blueprint(rentals)
 app.register_blueprint(profiles)
-
+app.register_blueprint(clients)
 
 def pagina_no_encontrada(error):
     return "<h1>Pagina no encontrada ...<h1>"
