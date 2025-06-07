@@ -163,7 +163,7 @@ class AccountsModel():
                 'estado': 'disponible',
                 'usuario_actual_id': None,
                 'fecha_inicio': datetime.now().isoformat(),
-                'fecha_fin': (datetime.now() + timedelta(days=30)).isoformat()
+                'fecha_fin': ""
             }
             account_resp = supabase.table("ACCOUNTS").update(account_data).eq("id", account_id).execute()
             return jsonify({
