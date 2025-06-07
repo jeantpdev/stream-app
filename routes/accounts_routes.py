@@ -15,7 +15,7 @@ def get_all_accounts():
 def get_available_accounts():
     return accounts_controller.get_available_accounts()
 
-@accounts.route('/accounts/<int:account_id>', methods=['GET'])
+@accounts.route('/accounts/<uuid:account_id>', methods=['GET'])
 @cross_origin()
 def get_account_by_id(account_id):
     return accounts_controller.get_account_by_id(account_id)
@@ -35,7 +35,7 @@ def update_account(account_id):
 def delete_account(account_id):
     return accounts_controller.delete_account(account_id)
 
-@accounts.route('/accounts/<int:account_id>/mark-available', methods=['PATCH'])
+@accounts.route('/accounts/<uuid:account_id>/mark-available', methods=['PATCH'])
 @cross_origin()
 def mark_account_as_available(account_id):
     return accounts_controller.mark_as_available(account_id)
