@@ -6,6 +6,7 @@ class ClientsController():
         self.model = ClientsModel()
 
     def get_all_clients(self, revendedor_id):
+        print("Entraste aca")
         return self.model.get_all_clients(revendedor_id)
 
     def get_client_by_id(self, client_id):
