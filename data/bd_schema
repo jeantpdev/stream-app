@@ -54,3 +54,12 @@ CREATE TABLE alquileres (
     fecha_fin DATE NOT NULL,
     created_at TIMESTAMP DEFAULT NOW()
 );
+
+CREATE TABLE descuentos_revendedor (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    revendedor_id UUID REFERENCES usuarios(id) ON DELETE CASCADE,
+    tipo_servicio TEXT NOT NULL,
+    descuento NUMERIC(10,2) NOT NULL, -- Negativo = descuento, Positivo = incremento
+    created_at TIMESTAMP DEFAULT NOW(),
+    UNIQUE(revendedor_id, tipo_servicio) -- Un revendedor solo puede tener un descuento por tipo de servicio
+);
