@@ -278,17 +278,239 @@ Verifica cuentas expiradas.
 ### `GET /rentals`
 Obtiene todos los alquileres.
 
+**Ejemplo de respuesta:**
+```json
+{
+  "mensaje": "Consulta exitosa",
+  "data": [
+    {
+      "id": "uuid",
+      "usuario_id": "uuid_usuario",
+      "cuenta_id": "uuid_cuenta", 
+      "tipo": "perfil",
+      "fecha_inicio": "2025-01-15T10:30:00",
+      "fecha_fin": "2025-02-13T10:30:00",
+      "created_at": "2025-01-15T10:30:00"
+    },
+    {
+      "id": "uuid",
+      "usuario_id": "uuid_usuario",
+      "cuenta_id": "uuid_cuenta",
+      "tipo": "completa", 
+      "fecha_inicio": "2025-01-10T15:45:00",
+      "fecha_fin": "2025-02-08T15:45:00",
+      "created_at": "2025-01-10T15:45:00"
+    }
+  ]
+}
+```
+
 ### `GET /rentals/<int:rental_id>`
 Obtiene un alquiler específico.
+
+**Ejemplo de respuesta (éxito):**
+```json
+{
+  "mensaje": "Consulta exitosa",
+  "data": {
+    "id": "uuid",
+    "usuario_id": "uuid_usuario",
+    "cuenta_id": "uuid_cuenta",
+    "tipo": "perfil",
+    "fecha_inicio": "2025-01-15T10:30:00", 
+    "fecha_fin": "2025-02-13T10:30:00",
+    "created_at": "2025-01-15T10:30:00"
+  }
+}
+```
+**Ejemplo de respuesta (no encontrado):**
+```json
+{
+  "mensaje": "Alquiler no encontrado",
+  "data": null
+}
+```
 
 ### `POST /rentals`
 Crea un nuevo alquiler.
 
+**Ejemplo de datos de entrada (alquiler de perfil):**
+```json
+{
+  "usuario_id": "uuid_usuario",
+  "cuenta_id": "uuid_cuenta",
+  "tipo": "perfil",
+  "cliente_id": "uuid_cliente"
+}
+```
+
+**Ejemplo de datos de entrada (alquiler completo):**
+```json
+{
+  "usuario_id": "uuid_usuario", 
+  "cuenta_id": "uuid_cuenta",
+  "tipo": "completa"
+}
+```
+
+**Ejemplo de respuesta (éxito - alquiler de perfil):**
+```json
+{
+  "mensaje": "Alquiler creado exitosamente",
+  "data": {
+    "id": "uuid",
+    "usuario_id": "uuid_usuario",
+    "cuenta_id": "uuid_cuenta",
+    "tipo": "perfil",
+    "fecha_inicio": "2025-01-15T10:30:00",
+    "fecha_fin": "2025-02-13T10:30:00", 
+    "created_at": "2025-01-15T10:30:00",
+    "perfil_asignado": {
+      "perfil_id": "uuid_perfil",
+      "nombre_perfil": "Perfil 1",
+      "cliente_asignado": "uuid_cliente"
+    }
+  }
+}
+```
+
+**Ejemplo de respuesta (éxito - alquiler completo):**
+```json
+{
+  "mensaje": "Alquiler creado exitosamente",
+  "data": {
+    "id": "uuid",
+    "usuario_id": "uuid_usuario",
+    "cuenta_id": "uuid_cuenta",
+    "tipo": "completa",
+    "fecha_inicio": "2025-01-15T10:30:00",
+    "fecha_fin": "2025-02-13T10:30:00", 
+    "created_at": "2025-01-15T10:30:00"
+  }
+}
+```
+
+**Ejemplo de respuesta (error, usuario no encontrado):**
+```json
+{
+  "mensaje": "Usuario no encontrado",
+  "data": null
+}
+```
+
+**Ejemplo de respuesta (error, cuenta no encontrada):**
+```json
+{
+  "mensaje": "Cuenta no encontrada", 
+  "data": null
+}
+```
+
+**Ejemplo de respuesta (error, cuenta no disponible para alquiler completo):**
+```json
+{
+  "mensaje": "La cuenta debe estar completamente disponible para alquiler completo",
+  "data": null
+}
+```
+
+**Ejemplo de respuesta (error, cuenta no disponible para alquiler de perfiles):**
+```json
+{
+  "mensaje": "La cuenta no está disponible para alquiler de perfiles",
+  "data": null
+}
+```
+
+**Ejemplo de respuesta (error, perfil no disponible):**
+```json
+{
+  "mensaje": "El perfil no está disponible",
+  "data": null
+}
+```
+
+**Ejemplo de respuesta (error, campos requeridos para perfil):**
+```json
+{
+  "mensaje": "El campo cliente_id es requerido para alquiler de perfil",
+  "data": null
+}
+```
+
+**Ejemplo de respuesta (error, cliente no pertenece al revendedor):**
+```json
+{
+  "mensaje": "El cliente no existe o no pertenece al revendedor",
+  "data": null
+}
+```
+
+**Ejemplo de respuesta (error, no hay perfiles disponibles):**
+```json
+{
+  "mensaje": "No hay perfiles disponibles en esta cuenta", 
+  "data": null
+}
+```
+
+**Ejemplo de respuesta (error, perfiles ya ocupados para cuenta completa):**
+```json
+{
+  "mensaje": "No se puede comprar la cuenta completa porque uno o más perfiles ya están ocupados",
+  "data": null
+}
+```
+
+**Ejemplo de respuesta (error general):**
+```json
+{
+  "mensaje": "Error al crear alquiler",
+  "error": "Mensaje de error específico"
+}
+```
+
 ### `GET /users/<int:user_id>/rentals/active`
-Obtiene los alquileres activos de un usuario.
+Obtiene los alquileres activos de un usuario específico.
+
+**Ejemplo de respuesta:**
+```json
+{
+  "mensaje": "Consulta exitosa",
+  "data": [
+    {
+      "id": "uuid",
+      "usuario_id": "uuid_usuario",
+      "cuenta_id": "uuid_cuenta",
+      "tipo": "perfil", 
+      "fecha_inicio": "2025-01-15T10:30:00",
+      "fecha_fin": "2025-02-13T10:30:00",
+      "created_at": "2025-01-15T10:30:00"
+    }
+  ]
+}
+```
 
 ### `GET /users/<int:user_id>/rentals/expired`
-Obtiene los alquileres expirados de un usuario.
+Obtiene los alquileres expirados de un usuario específico.
+
+**Ejemplo de respuesta:**
+```json
+{
+  "mensaje": "Consulta exitosa", 
+  "data": [
+    {
+      "id": "uuid",
+      "usuario_id": "uuid_usuario",
+      "cuenta_id": "uuid_cuenta",
+      "tipo": "completa",
+      "fecha_inicio": "2024-12-01T08:00:00",
+      "fecha_fin": "2024-12-30T08:00:00", 
+      "created_at": "2024-12-01T08:00:00"
+    }
+  ]
+}
+```
 
 ---
 
@@ -314,22 +536,210 @@ Marca un perfil como disponible.
 ## Clientes
 
 ### `GET /revendedores/<int:revendedor_id>/clients`
-Obtiene los clientes de un revendedor.
+Obtiene todos los clientes de un revendedor específico.
+
+**Ejemplo de respuesta:**
+```json
+{
+  "mensaje": "Consulta exitosa",
+  "data": [
+    {
+      "id": "uuid",
+      "nombre": "Juan Pérez",
+      "contacto": "+1234567890",
+      "revendedor_id": "uuid_revendedor",
+      "created_at": "2025-01-15T10:30:00"
+    },
+    {
+      "id": "uuid", 
+      "nombre": "María García",
+      "contacto": "maria@email.com",
+      "revendedor_id": "uuid_revendedor",
+      "created_at": "2025-01-10T14:20:00"
+    }
+  ]
+}
+```
 
 ### `GET /clients/<int:client_id>`
 Obtiene un cliente específico.
 
+**Ejemplo de respuesta (éxito):**
+```json
+{
+  "mensaje": "Consulta exitosa",
+  "data": {
+    "id": "uuid",
+    "nombre": "Juan Pérez", 
+    "contacto": "+1234567890",
+    "revendedor_id": "uuid_revendedor",
+    "created_at": "2025-01-15T10:30:00"
+  }
+}
+```
+
+**Ejemplo de respuesta (no encontrado):**
+```json
+{
+  "mensaje": "Cliente no encontrado",
+  "data": null
+}
+```
+
 ### `POST /clients`
 Crea un nuevo cliente.
 
+**Ejemplo de datos de entrada:**
+```json
+{
+  "nombre": "Juan Pérez",
+  "contacto": "+1234567890", 
+  "revendedor_id": "uuid_revendedor"
+}
+```
+
+**Ejemplo de respuesta (éxito):**
+```json
+{
+  "mensaje": "Cliente creado exitosamente",
+  "data": {
+    "id": "uuid",
+    "nombre": "Juan Pérez",
+    "contacto": "+1234567890",
+    "revendedor_id": "uuid_revendedor",
+    "created_at": "2025-01-15T10:30:00"
+  }
+}
+```
+
+**Ejemplo de respuesta (error, campo faltante):**
+```json
+{
+  "mensaje": "El campo nombre es requerido",
+  "data": null
+}
+```
+
+**Ejemplo de respuesta (error, revendedor no existe):**
+```json
+{
+  "mensaje": "El revendedor no existe",
+  "data": null
+}
+```
+
+**Ejemplo de respuesta (error, usuario no es revendedor):**
+```json
+{
+  "mensaje": "El usuario no es un revendedor",
+  "data": null
+}
+```
+
+**Ejemplo de respuesta (error general):**
+```json
+{
+  "mensaje": "Error al crear cliente",
+  "error": "Mensaje de error específico"
+}
+```
+
 ### `PATCH /clients/<int:client_id>`
-Actualiza un cliente.
+Actualiza un cliente existente.
+
+**Ejemplo de datos de entrada:**
+```json
+{
+  "nombre": "Juan Carlos Pérez",
+  "contacto": "juan.perez@email.com"
+}
+```
+
+**Ejemplo de respuesta (éxito):**
+```json
+{
+  "mensaje": "Cliente actualizado exitosamente",
+  "data": {
+    "id": "uuid",
+    "nombre": "Juan Carlos Pérez",
+    "contacto": "juan.perez@email.com",
+    "revendedor_id": "uuid_revendedor",
+    "created_at": "2025-01-15T10:30:00"
+  }
+}
+```
+
+**Ejemplo de respuesta (error, cliente no encontrado):**
+```json
+{
+  "mensaje": "Cliente no encontrado",
+  "data": null
+}
+```
+
+**Ejemplo de respuesta (error general):**
+```json
+{
+  "mensaje": "Error al actualizar cliente",
+  "error": "Mensaje de error específico"
+}
+```
 
 ### `DELETE /clients/<int:client_id>`
 Elimina un cliente.
 
+**Ejemplo de respuesta (éxito):**
+```json
+{
+  "mensaje": "Cliente eliminado exitosamente"
+}
+```
+
+**Ejemplo de respuesta (error, cliente con perfiles asignados):**
+```json
+{
+  "mensaje": "No se puede eliminar un cliente con perfiles asignados",
+  "data": null
+}
+```
+
+**Ejemplo de respuesta (error general):**
+```json
+{
+  "mensaje": "Error al eliminar cliente",
+  "error": "Mensaje de error específico"
+}
+```
+
 ### `GET /clients/<int:client_id>/profiles`
-Obtiene los perfiles asignados a un cliente.
+Obtiene todos los perfiles asignados a un cliente específico.
+
+**Ejemplo de respuesta:**
+```json
+{
+  "mensaje": "Consulta exitosa",
+  "data": [
+    {
+      "id": "uuid_perfil",
+      "nombre": "Perfil 1",
+      "cuenta_id": "uuid_cuenta",
+      "estado": "ocupado",
+      "cliente_id": "uuid_cliente",
+      "usuario_id": "uuid_usuario",
+      "created_at": "2025-01-15T10:30:00"
+    },
+    {
+      "id": "uuid_perfil_2",
+      "nombre": "Perfil 3", 
+      "cuenta_id": "uuid_cuenta_2",
+      "estado": "ocupado",
+      "cliente_id": "uuid_cliente",
+      "usuario_id": "uuid_usuario",
+      "created_at": "2025-01-12T08:15:00"
+    }
+  ]
+}
+```
 
 ---
 
